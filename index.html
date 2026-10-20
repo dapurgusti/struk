@@ -73,6 +73,8 @@ textarea{resize:vertical;min-height:60px}
       <button class="btn ghost" id="addBtn" style="margin:0">+ Tambah blok</button>
     </div>
     <label class="row" style="margin-top:12px;cursor:pointer"><input type="checkbox" id="credit" style="width:auto" checked> Tampilkan footer "Create : @fixs.arts"</label>
+    <label class="row" style="margin-top:8px;cursor:pointer"><input type="checkbox" id="chgOn" style="width:auto"> Aktifkan uang customer &amp; kembalian</label>
+    <div id="chgBox" style="display:none;margin-top:6px"><label style="margin-top:0">Tunai</label><div class="money"><span>Rp.</span><input id="chgPaid" inputmode="numeric" placeholder="0"></div></div>
   </div>
   <div>
     <div class="top">
@@ -249,6 +251,33 @@ let blocks=[],uid=0;
 const add=type=>blocks.push({id:++uid,type,open:false,data:JSON.parse(JSON.stringify(TYPES[type].def))});
 ['settings','logo','header','datetime','info','items','totals','payment','message','barcode'].forEach(add);
 
+let paidAmt=0;
+function calcTotal(all){
+  const it=all.find(b=>b.type==='items'), tt=all.find(b=>b.type==='totals');
+  const sub=it?sumItems(it.data.items):0, d=tt?tt.data:{tax:0,disc:0};
+  return sub-d.disc+Math.round((sub-d.disc)*d.tax/100);
+}
+/* Uang customer & kembalian (aktif kalau toggle dicentang) */
+function changeHTML(){
+  if(!$('#chgOn').checked)return '';
+  const diff=paidAmt-calcTotal(blocks);
+  return `<div class="lr"><span>Tunai
+  </span><span>${rp(paidAmt)}</span></div>`
+   +`<div class="lr"><b>${diff<0?'Kembalian':'KEMBALIAN'}</b><b>${rp(Math.abs(diff))}</b></div>`;
+}
+/* Daftar bagian struk; kembalian muncul tepat setelah blok Total */
+function sections(){
+  const out=[];
+  blocks.forEach(b=>{
+    if(b.type==='settings')return;
+    const h=TYPES[b.type].render(b.data,blocks);
+    if(h)out.push(h);
+    if(b.type==='totals'){const c=changeHTML();if(c)out.push(c)}
+  });
+  if(!blocks.some(b=>b.type==='totals')){const c=changeHTML();if(c)out.push(c)}
+  return out;
+}
+
 const settings=()=>(blocks.find(b=>b.type==='settings')||{data:TYPES.settings.def}).data;
 
 function renderReceipt(){
@@ -264,7 +293,7 @@ function renderReceipt(){
   r.style.width=W+'px';
   r.style.padding=`${22+pd.t}px ${16+pd.x}px ${22+pd.b}px`;
   const sep=s.template==='thermal'?`<div class="sep">${esc(s.sep||'=').repeat(80)}</div>`:'<div class="sep"></div>';
-  r.innerHTML='<div class="ct">'+blocks.filter(b=>b.type!=='settings').map(b=>TYPES[b.type].render(b.data,blocks)).filter(Boolean).join(sep)+($('#credit').checked?'<div class="c credit">Create : @fixs.arts</div>':'')+'</div>';
+  r.innerHTML='<div class="ct">'+sections().join(sep)+($('#credit').checked?'<div class="c credit">Create : @fixs.arts</div>':'')+'</div>';
   r.querySelectorAll('[data-qr]').forEach(el=>{try{new QRCode(el,{text:el.dataset.qr||' ',width:80,height:80})}catch(e){}});
   drawShape();
 }
@@ -395,6 +424,8 @@ function renderForm(){
 
 $('#addType').innerHTML=Object.keys(TYPES).filter(t=>t!=='settings').map(t=>`<option value="${t}">${TYPES[t].name}</option>`).join('');
 $('#credit').onchange=renderReceipt;
+$('#chgOn').onchange=()=>{$('#chgBox').style.display=$('#chgOn').checked?'block':'none';renderReceipt()};
+$('#chgPaid').oninput=e=>{paidAmt=moneyInput(e.target);renderReceipt()};
 $('#addBtn').onclick=()=>{add($('#addType').value);blocks[blocks.length-1].open=true;renderForm();renderReceipt()};
 
 /* ===== EXPORT ===== */
