@@ -62,8 +62,23 @@ textarea{resize:vertical;min-height:60px}
 .t-bold #receipt{font-family:"Arial Black",Arial,sans-serif}
 .t-bold #receipt .sep{border-top:3px solid #111;height:0;font-size:0;margin:8px 0}
 </style>
+
+
+    <!-- CSS eksternal (footer situs).
+       CSS header SENGAJA tidak dipasang di sini: header.js memuatnya sendiri
+       dari folder yang sama dengan header.js, sehingga path-nya pasti cocok. -->
+  <link rel="stylesheet" href="https://fixsarts.github.io/footer/css/footer.css">
+
+  <!-- CSS halaman ini (dimuat paling akhir agar override footer berlaku) -->
+  <link rel="stylesheet" href="css/invoice.css">
+
+  
 </head>
 <body>
+
+    <!-- Header situs: wadah harus ada di <body>, bukan di <head> -->
+  <div id="fa-header-root"></div>
+  
 <div class="app">
   <div>
     <h1>Struk Maker</h1>
@@ -449,5 +464,22 @@ $('#dlPdf').onclick=async()=>{
 };
 renderForm();renderReceipt();
 </script>
+
+  <script src="https://fixsarts.github.io/footer/js/footer-config.js"></script>
+  <script src="https://fixsarts.github.io/footer/js/footer.js"></script>
+
+  <!-- Logika aplikasi -->
+  <script src="js/app.js"></script>
+
+  <!-- Music widget (floating) -->
+  <script
+    src="https://cdn.jsdelivr.net/gh/fixsarts/MusicWidgets@main/music-player.js?v=20261023"
+    data-src="https://cdn.jsdelivr.net/gh/fixsarts/MusicWidgets@main/Assets/Musik/Ariana%20Grande%20-%20bye%20%5BAltare%20Remix%5D.mp3"
+    data-title="bye"
+    data-artist="Ariana Grande - Altare Remix"
+    data-css="https://cdn.jsdelivr.net/gh/fixsarts/MusicWidgets@main/music-player.css?v=20261023"
+    defer>
+  </script>
+  
 </body>
 </html>
